@@ -1,7 +1,7 @@
 .container {
   display: flex;
   justify-content: space-between;
-  font-size: xx-large;
+  font-size: x-large;
   margin: 0 auto;
   border: 1px solid black;
   width: 63.75rem;
@@ -17,8 +17,21 @@
 }
 
 .timer_container {
+  display: flex;
+  flex-direction: column;
   margin: 2rem 2rem 2rem 0rem;
   border: 1px solid black;
+  gap: 2rem;
+}
+
+.bar_timer {
+  border: 1px solid black;
+  height: 100%;
+  padding: 1rem 0.5rem;
+  background: linear-gradient(to top, #ff5555, #ff9999);
+  transform-origin: bottom;
+  transform: scaleY(var(--time-ratio, 1));
+  transition: transform 1s linear;
 }
 
 .main_container {

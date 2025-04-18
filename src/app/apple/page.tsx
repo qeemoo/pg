@@ -7,7 +7,8 @@ import Link from 'next/link';
 const generateAppleGrid = () => {
   return Array.from(
     { length: 10 * 20 },
-    () => Math.floor(Math.random() * 9) + 0 // test를 위하여 0으로 변경 1로 수정필요
+    () => Math.floor(Math.random() * 9) + 0
+    // test를 위하여 0으로 변경 1로 수정필요
   );
 };
 
@@ -16,6 +17,7 @@ const findZeroPoint = (searchGrid: number[]) => {
 };
 
 const Apple = () => {
+  const [timeLeft, setTimeLeft] = useState<number>(120);
   const [appleGrid, setAppleGrid] = useState<number[]>([]);
   const [score, setScore] = useState<number>(0);
 
@@ -23,6 +25,16 @@ const Apple = () => {
     setAppleGrid(generateAppleGrid());
     setScore(findZeroPoint(generateAppleGrid()));
   }, []);
+
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft]);
 
   return (
     <div className={S.container}>
@@ -45,6 +57,7 @@ const Apple = () => {
                 const newGrid = generateAppleGrid();
                 setAppleGrid(newGrid);
                 setScore(findZeroPoint(newGrid));
+                setTimeLeft(120);
               }}
             >
               reset
@@ -53,7 +66,13 @@ const Apple = () => {
           <div className={S.volume_box}>vol</div>
         </div>
       </div>
-      <div className={S.timer_container}>타이머</div>
+      <div className={S.timer_container}>
+        <div className={S.number_timer}>{timeLeft}</div>
+        <div
+          className={S.bar_timer}
+          style={{ '--time-ratio': `${timeLeft / 120}` } as React.CSSProperties}
+        ></div>
+      </div>
     </div>
   );
 };
