@@ -22,8 +22,17 @@
 }
 
 .main_container {
-  height: 20rem;
   border: 1px solid black;
+}
+
+.main_grid {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 0.2rem;
 }
 
 .option_container {
