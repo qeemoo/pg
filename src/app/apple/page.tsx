@@ -13,13 +13,15 @@ const findZeroPoint = (searchGrid: number[]) => {
 };
 
 const Apple = () => {
-  const [timeLeft, setTimeLeft] = useState<number>(10);
+  const [timeLeft, setTimeLeft] = useState<number>(120);
   const [appleGrid, setAppleGrid] = useState<number[]>([]);
   const [score, setScore] = useState<number>(0);
   const [volume, setVolume] = useState<number>(0.5);
   const [muted, setMuted] = useState<boolean>(false);
   const [started, setStarted] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
 
   const backgroundMusicRef = useRef<HTMLAudioElement | null>(null);
 
@@ -71,7 +73,7 @@ const Apple = () => {
     const newGrid = generateAppleGrid();
     setAppleGrid(newGrid);
     setScore(findZeroPoint(newGrid));
-    setTimeLeft(10);
+    setTimeLeft(120);
     setStarted(false);
     setShowModal(false);
 
@@ -106,7 +108,37 @@ const Apple = () => {
             <div className={S.main_container}>
               <div className={S.main_grid}>
                 {appleGrid.map((number, index) => (
-                  <div key={index}>{number}</div>
+                  <div
+                    key={index}
+                    className={`${S.grid_item} ${selectedIndices.includes(index) ? S.selected : ''}`}
+                    onMouseDown={() => {
+                      setSelectedIndices([index]);
+                      setIsDragging(true);
+                    }}
+                    onMouseEnter={() => {
+                      if (isDragging && !selectedIndices.includes(index)) {
+                        setSelectedIndices([...selectedIndices, index]);
+                      }
+                    }}
+                    onMouseUp={() => {
+                      setIsDragging(false);
+                      const sum = selectedIndices.reduce(
+                        (acc, i) => acc + appleGrid[i],
+                        0
+                      );
+                      if (sum === 10) {
+                        const newGrid = [...appleGrid];
+                        selectedIndices.forEach((i) => {
+                          newGrid[i] = 0;
+                        });
+                        setAppleGrid(newGrid);
+                        setScore(findZeroPoint(newGrid));
+                      }
+                      setSelectedIndices([]);
+                    }}
+                  >
+                    {number}
+                  </div>
                 ))}
               </div>
             </div>
