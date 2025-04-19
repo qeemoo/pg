@@ -13,16 +13,16 @@ const findZeroPoint = (searchGrid: number[]) => {
 };
 
 const Apple = () => {
-  const [timeLeft, setTimeLeft] = useState<number>(120);
+  const [timeLeft, setTimeLeft] = useState<number>(10);
   const [appleGrid, setAppleGrid] = useState<number[]>([]);
   const [score, setScore] = useState<number>(0);
   const [volume, setVolume] = useState<number>(0.5);
   const [muted, setMuted] = useState<boolean>(false);
   const [started, setStarted] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState<boolean>(false);
 
   const backgroundMusicRef = useRef<HTMLAudioElement | null>(null);
 
-  // 초기 셋업
   useEffect(() => {
     const grid = generateAppleGrid();
     setAppleGrid(grid);
@@ -34,7 +34,7 @@ const Apple = () => {
     backgroundMusicRef.current.muted = muted;
 
     backgroundMusicRef.current.play().catch((err) => {
-      console.warn('브라우저가 자동 재생을 막음:', err);
+      console.warn('자동 재생 실패:', err);
     });
 
     return () => {
@@ -43,7 +43,6 @@ const Apple = () => {
     };
   }, []);
 
-  // 오디오 볼륨/음소거 반영
   useEffect(() => {
     if (backgroundMusicRef.current) {
       backgroundMusicRef.current.volume = volume;
@@ -51,42 +50,55 @@ const Apple = () => {
     }
   }, [volume, muted]);
 
-  // 게임 시작 핸들러 (선택사항: 시작 시 음악 재생 보장)
-  const handleStart = () => {
-    setStarted(true);
-    backgroundMusicRef.current?.play();
-  };
-
-  // 게임 리셋
-  const handleReset = () => {
-    const newGrid = generateAppleGrid();
-    setAppleGrid(newGrid);
-    setScore(findZeroPoint(newGrid));
-    setTimeLeft(120);
-    setStarted(false);
-
-    if (backgroundMusicRef.current) {
-      backgroundMusicRef.current.currentTime = 0;
-      backgroundMusicRef.current.pause();
-    }
-  };
-
-  // 타이머 작동
   useEffect(() => {
     if (!started || timeLeft <= 0) return;
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          setShowModal(true);
+          backgroundMusicRef.current?.pause();
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
 
     return () => clearInterval(timer);
   }, [started, timeLeft]);
 
+  const handleReset = () => {
+    const newGrid = generateAppleGrid();
+    setAppleGrid(newGrid);
+    setScore(findZeroPoint(newGrid));
+    setTimeLeft(10);
+    setStarted(false);
+    setShowModal(false);
+
+    if (backgroundMusicRef.current) {
+      backgroundMusicRef.current.currentTime = 0;
+      backgroundMusicRef.current.play();
+    }
+  };
+
+  const handleRestart = () => {
+    const newGrid = generateAppleGrid();
+    setAppleGrid(newGrid);
+    setScore(findZeroPoint(newGrid));
+    setTimeLeft(10);
+    setShowModal(false);
+
+    if (backgroundMusicRef.current) {
+      backgroundMusicRef.current.currentTime = 0;
+      backgroundMusicRef.current.play();
+    }
+  };
+
   return (
     <div className={S.container}>
       {!started ? (
-        <div className={S.cover}>
-          <button onClick={handleStart}>게임 시작</button>
+        <div className={S.start_screen}>
+          <button onClick={() => setStarted(true)}>게임 시작</button>
         </div>
       ) : (
         <>
@@ -118,7 +130,7 @@ const Apple = () => {
                   value={muted ? 0 : volume}
                   onChange={(e) => {
                     setVolume(parseFloat(e.target.value));
-                    if (muted) setMuted(false); // 슬라이더 조작 시 자동 음소거 해제
+                    if (muted) setMuted(false);
                   }}
                 />
               </div>
@@ -134,6 +146,15 @@ const Apple = () => {
             ></div>
           </div>
         </>
+      )}
+
+      {showModal && (
+        <div className={S.modal_overlay}>
+          <div className={S.modal_container}>
+            <p>Score: {score}</p>
+            <button onClick={handleRestart}>reset</button>
+          </div>
+        </div>
       )}
     </div>
   );
